@@ -1,3 +1,5 @@
+# TTS ALERT FOR TELKOM INFRA TEAM - GRAFANA.
+# Written by Muhammad Yudha Abhista (@NotYusta)
 voiceModel: "andika"
 targetNotification: "folder"
 serverPort: 8080

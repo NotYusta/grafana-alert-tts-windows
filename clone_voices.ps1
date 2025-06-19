@@ -6,7 +6,7 @@ $destination = "HKLM:\SOFTWARE\Microsoft\SPEECH\Voices\Tokens"
 Get-ChildItem -Path $source | ForEach-Object {
     $name = $_.PSChildName
     $srcPath = $_.PsPath
-    $destPath = Join-Path $destination ${name}
+    $destPath = Join-Path $destination $name
 
     try {
         Write-Host "Copying voice: ${name}"

@@ -26,7 +26,20 @@
 4. Klik **Add voices** (Tambah suara)
 5. Cari dan pilih **Bahasa Indonesia**, lalu klik **Install**
 6. Setelah selesai instalasi, cari file `clone_voices.ps1`
-7. Klik kanan pada file tersebut dan pilih **Run as Administrator**
+7. **Menjalankan `clone_voices.ps1` dengan hak Administrator**:
+
+   * Klik **Start**, ketik **PowerShell**
+   * Klik kanan **Windows PowerShell** atau **Windows Terminal**, pilih **Run as administrator**
+   * Arahkan ke folder tempat file `clone_voices.ps1` berada:
+
+     ```powershell
+     cd "C:\path\ke\folder"
+     ```
+   * Jalankan skrip dengan perintah:
+
+     ```powershell
+     .\clone_voices.ps1
+     ```
 
 ---
 

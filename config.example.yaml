@@ -1,5 +1,6 @@
 voiceModel: "andika"
 targetNotification: "folder"
+serverPort: 8080
 messages:
   status:
     resolved: "Risolfet"

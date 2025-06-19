@@ -6,18 +6,13 @@ import queue
 
 # Allowed notification targets
 VALID_TARGETS = ["folder"]
-
-
-
-
 config = {}
-
 
 def load_config():
     global config
     with open("config.yaml", "r", encoding="utf-8") as f:
         configYml: dict = yaml.safe_load(f)
-    
+
     svConf = configYml.get("server", {})
     config = {
         "server_port": svConf.get("port", 8000),
@@ -26,6 +21,7 @@ def load_config():
         "target_notification": configYml.get("targetNotification", "").lower(),
         "messages": configYml.get("messages", {}),
     }
+
 
 load_config()
 

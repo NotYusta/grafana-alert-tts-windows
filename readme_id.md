@@ -1,5 +1,3 @@
----
-
 # Instalasi
 
 ## Menggunakan pip

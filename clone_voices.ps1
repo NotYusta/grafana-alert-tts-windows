@@ -4,7 +4,7 @@ $source = "HKLM:\SOFTWARE\Microsoft\Speech_OneCore\Voices\Tokens"
 $destination = "HKLM:\SOFTWARE\Microsoft\SPEECH\Voices\Tokens"
 
 Get-ChildItem -Path $source | ForEach-Object {
-    ${name} = $_.PSChildName
+    $name = $_.PSChildName
     $srcPath = $_.PsPath
     $destPath = Join-Path $destination ${name}
 

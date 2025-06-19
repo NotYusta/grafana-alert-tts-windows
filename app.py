@@ -69,8 +69,7 @@ def notify():
         status = alert.get("status", "").lower()
         alert_name = labels.get("alertname", "tidak diketahui")
         alert_folder = labels.get("grafana_folder", "tidak diketahui")
-        template_key = "alert" if status == "firing" else status
-        template = config["messages"].get(template_key, config["messages"]["default"])
+        template = config["messages"].get(status, config["messages"]["default"])
         # Replace status using config, fallback to raw
         status_friendly = config["messages"].get("status", {}).get(status, status)
 

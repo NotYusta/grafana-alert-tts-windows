@@ -3,19 +3,31 @@ import yaml
 from flask import Flask, request
 import threading
 import queue
+
 # Allowed notification targets
 VALID_TARGETS = ["folder"]
 
-# Load config.yaml
-with open("config.yaml", "r", encoding="utf-8") as f:
-    configYml: dict = yaml.safe_load(f)
 
-config = {
-    "server_port": configYml.get("serverPort", 8000),
-    "voice_name": configYml.get("voiceModel", "").lower(),
-    "target_notification": configYml.get("targetNotification", "").lower(),
-    "messages": configYml.get("messages", {}),
-}
+
+
+config = {}
+
+
+def load_config():
+    global config
+    with open("config.yaml", "r", encoding="utf-8") as f:
+        configYml: dict = yaml.safe_load(f)
+    
+    svConf = configYml.get("server", {})
+    config = {
+        "server_port": svConf.get("port", 8000),
+        "server_path": svConf.get("path", "/notify"),
+        "voice_name": configYml.get("voiceModel", "").lower(),
+        "target_notification": configYml.get("targetNotification", "").lower(),
+        "messages": configYml.get("messages", {}),
+    }
+
+load_config()
 
 # Validate target notification
 if config["target_notification"] not in VALID_TARGETS:
@@ -26,6 +38,7 @@ if config["target_notification"] not in VALID_TARGETS:
 
 # Create a queue for speech
 speech_queue = queue.Queue()
+
 
 # Background speech worker
 def speech_worker():
@@ -49,7 +62,6 @@ def speech_worker():
         speech_queue.task_done()
 
 
-
 # Start the speech worker thread
 threading.Thread(target=speech_worker, daemon=True).start()
 
@@ -57,7 +69,7 @@ threading.Thread(target=speech_worker, daemon=True).start()
 app = Flask(__name__)
 
 
-@app.route("/notify", methods=["POST"])
+@app.route(config["server_path"], methods=["POST"])
 def notify():
     data = request.json
     alerts = data.get("alerts", [])

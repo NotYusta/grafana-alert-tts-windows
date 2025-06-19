@@ -2,7 +2,9 @@
 # Written by Muhammad Yudha Abhista (@NotYusta)
 voiceModel: "andika"
 targetNotification: "folder"
-serverPort: 8080
+server:
+  port: 8080
+  path: "/notify"
 messages:
   status:
     resolved: "Risolfet"

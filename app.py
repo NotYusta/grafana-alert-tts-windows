@@ -68,6 +68,7 @@ app = Flask(__name__)
 @app.route(config["server_path"], methods=["POST"])
 def notify():
     data = request.json
+    print(data)
     alerts = data.get("alerts", [])
     if not alerts:
         return "", 204
@@ -75,6 +76,8 @@ def notify():
     for alert in alerts:
         labels = alert.get("labels", {})
         status = alert.get("status", "").lower()
+        alert_description = alert.get("annotations", {}).get("description", "")
+        alert_summary = alert.get("annotations", {}).get("summary", "")
         alert_name = labels.get("alertname", "tidak diketahui")
         alert_folder = labels.get("grafana_folder", "tidak diketahui")
         template = config["messages"].get(status, config["messages"]["default"])
@@ -82,7 +85,7 @@ def notify():
         status_friendly = config["messages"].get("status", {}).get(status, status)
 
         message = template.format(
-            alert_name=alert_name, status=status_friendly, alert_folder=alert_folder
+            alert_name=alert_name, status=status_friendly, alert_folder=alert_folder,alert_description=alert_description,alert_summary=alert_summary
         )
 
         print(f"📝 Queued: {message}")

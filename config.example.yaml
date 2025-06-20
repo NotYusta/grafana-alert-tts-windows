@@ -9,6 +9,6 @@ messages:
   status:
     resolved: "Risolfet"
     firing: "Fairing"
-  default: "Terdapat notifikasi {alert_name} di folder {alert_folder} dengan status {status}."
-  firing: "BAHAYA: {alert_name} terdeteksi di folder {alert_folder} dengan status {status}!"
-  resolved: "Pemantauan untuk {alert_name} di folder {alert_folder} telah kembali normal."
+  default: "Terdapat notifikasi {alert_name} di folder {alert_folder} dengan status {status}. {alert_summary} {alert_description}"
+  firing: "BAHAYA: {alert_name} terdeteksi di folder {alert_folder} dengan status {status}! {alert_summary} {alert_description}"
+  resolved: "Pemantauan untuk {alert_name} di folder {alert_folder} telah kembali normal. {alert_summary} {alert_description}"

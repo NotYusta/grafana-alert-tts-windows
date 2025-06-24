@@ -2,11 +2,16 @@ import pyttsx3
 import yaml
 from flask import Flask, request
 import threading
-import queue
+import time
 
 # Allowed notification targets
 VALID_TARGETS = ["folder"]
 config = {}
+
+# Message queue for rotation
+loop_messages = []  # List of dicts: {message, max, interval, count}
+loop_lock = threading.Lock()
+
 
 def load_config():
     global config
@@ -20,6 +25,7 @@ def load_config():
         "voice_name": configYml.get("voiceModel", "").lower(),
         "target_notification": configYml.get("targetNotification", "").lower(),
         "messages": configYml.get("messages", {}),
+        "loop": configYml.get("loop", {}),
     }
 
 
@@ -31,38 +37,54 @@ if config["target_notification"] not in VALID_TARGETS:
     print(f"✅ Available options: {', '.join(VALID_TARGETS)}")
     exit()
 
+# Flask app
+app = Flask(__name__)
 
-# Create a queue for speech
-speech_queue = queue.Queue()
 
+def rotating_speaker():
+    local_engine = pyttsx3.init()
+    matched = False
+    for voice in local_engine.getProperty("voices"):
+        if config["voice_name"] in voice.name.lower():
+            local_engine.setProperty("voice", voice.id)
+            matched = True
+            break
+    if not matched:
+        print("⚠️ Voice not found, using default voice.")
 
-# Background speech worker
-def speech_worker():
+    idx = 0
     while True:
-        message = speech_queue.get()
-        try:
-            # Re-initialize the engine every time
-            local_engine = pyttsx3.init()
-            for voice in local_engine.getProperty("voices"):
-                if config["voice_name"] in voice.name.lower():
-                    local_engine.setProperty("voice", voice.id)
-                    break
+        with loop_lock:
+            if not loop_messages:
+                time.sleep(1)
+                continue
 
-            print(f"🔊 Speaking: {message}")
+            item = loop_messages[idx % len(loop_messages)]
+            message = item["message"]
+            max_count = item["max"]
+            interval = item["interval"]
+            count = item["count"]
+
+        print(f"🔊 Speaking: {message} ({count + 1}/{max_count if max_count else '∞'})")
+        try:
             local_engine.say(message)
             local_engine.runAndWait()
-            local_engine.stop()
-
         except Exception as e:
             print(f"❌ Error while speaking: {e}")
-        speech_queue.task_done()
+
+        time.sleep(interval)
+
+        with loop_lock:
+            item["count"] += 1
+            if max_count != 0 and item["count"] >= max_count:
+                print(f"✅ Finished: {message}")
+                loop_messages.remove(item)
+            else:
+                idx += 1
 
 
-# Start the speech worker thread
-threading.Thread(target=speech_worker, daemon=True).start()
-
-# Initialize Flask app
-app = Flask(__name__)
+# Start speaker thread
+threading.Thread(target=rotating_speaker, daemon=True).start()
 
 
 @app.route(config["server_path"], methods=["POST"])
@@ -80,18 +102,42 @@ def notify():
         alert_summary = alert.get("annotations", {}).get("summary", "")
         alert_name = labels.get("alertname", "tidak diketahui")
         alert_folder = labels.get("grafana_folder", "tidak diketahui")
-        template = config["messages"].get(status, config["messages"]["default"])
-        # Replace status using config, fallback to raw
+
+        # Format message
+        template = config["messages"].get(status) or config["messages"].get("default", "{alert_name} - {status}")
         status_friendly = config["messages"].get("status", {}).get(status, status)
 
         message = template.format(
-            alert_name=alert_name, status=status_friendly, alert_folder=alert_folder,alert_description=alert_description,alert_summary=alert_summary
+            alert_name=alert_name,
+            status=status_friendly,
+            alert_folder=alert_folder,
+            alert_description=alert_description,
+            alert_summary=alert_summary,
         )
 
-        print(f"📝 Queued: {message}")
-        speech_queue.put_nowait(message)
+        # Get loop settings
+        loop_data = config["loop"].get(status, config["loop"].get("default", {}))
+        max_loops = loop_data.get("max", 1)
+        interval = loop_data.get("interval", 5)
 
-    return "", 204  # No content
+        with loop_lock:
+            exists = any(msg["message"] == message for msg in loop_messages)
+
+            if status == "resolved":
+                loop_messages[:] = [m for m in loop_messages if m["message"] != message]
+                print(f"➖ Removed from loop_messages: {message}")
+            elif not exists:
+                loop_messages.append({
+                    "message": message,
+                    "max": max_loops,
+                    "interval": interval,
+                    "count": 0,
+                })
+                print(f"➕ Added to loop_messages: {message} (max: {max_loops}, interval: {interval}s)")
+            else:
+                print(f"ℹ️ Already in loop_messages, skipping: {message}")
+
+    return "", 204
 
 
 if __name__ == "__main__":

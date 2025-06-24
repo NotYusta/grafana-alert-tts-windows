@@ -12,3 +12,20 @@ messages:
   default: "Terdapat notifikasi {alert_name} di folder {alert_folder} dengan status {status}. {alert_summary} {alert_description}"
   firing: "BAHAYA: {alert_name} terdeteksi di folder {alert_folder} dengan status {status}! {alert_summary} {alert_description}"
   resolved: "Pemantauan untuk {alert_name} di folder {alert_folder} telah kembali normal. {alert_summary} {alert_description}"
+loop:
+  default:
+    # Maximum occurrences of the loop - 0 means infinite
+    max: 1
+    # Interval in seconds between each loop
+    interval: 5
+  firing:
+    # Maximum occurrences of the loop - 0 means infinite
+    max: 3
+    # Interval in seconds between each loop
+    interval: 5
+  resolved:
+    # Maximum occurrences of the loop - 0 means infinite
+    max: 1
+    # Interval in seconds between each loop
+    interval: 5
+  

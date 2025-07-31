@@ -96,13 +96,19 @@ def notify():
         return "", 204
 
     for alert in alerts:
+
+
         labels = alert.get("labels", {})
         status = alert.get("status", "").lower()
         alert_description = alert.get("annotations", {}).get("description", "")
         alert_summary = alert.get("annotations", {}).get("summary", "")
         alert_name = labels.get("alertname", "tidak diketahui")
         alert_folder = labels.get("grafana_folder", "tidak diketahui")
-
+        ignored_alerts = config["messages"].get("ignore", [])
+        
+        if alert_name in ignored_alerts:
+            print(f"Ignoring {alert_name} from {alert_folder}..")
+            continue
         # Format message
         template = config["messages"].get(status) or config["messages"].get("default", "{alert_name} - {status}")
         status_friendly = config["messages"].get("status", {}).get(status, status)

@@ -6,6 +6,7 @@ server:
   port: 8080
   path: "/notify"
 messages:
+  ignore: ["DatasourceNoData"]
   status:
     resolved: "Risolfet"
     firing: "Fairing"
